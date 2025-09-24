@@ -24,26 +24,34 @@ public class OllamaService {
         // Strict prompt to force JSON
         String prompt = """
         You are a rule generator for a coupon engine.
-        Your task:
-        - Take the following description of a coupon rule and convert it into a strict JSON object.
-        Output format:
+        
+        Task:
+        - Convert the given description into a strict JSON object.
+        - ONLY include fields explicitly provided in the description.
+        - If a required field cannot be inferred, set it to null or an empty array.
+        
+        Output format (and rules):
         {
-          "type": "<DISCOUNT | CASHBACK | BUY_ONE_GET_ONE>",
-          "value": <decimal between 0 and 1 for DISCOUNT or CASHBACK, null for BUY_ONE_GET_ONE>,
-          "conditions": [ "<condition1>", "<condition2>", ... ]
+          "type": "<DISCOUNT | CASHBACK | BUY_ONE_GET_ONE | null>",
+          "value": <decimal between 0 and 1 for DISCOUNT or CASHBACK, null for BUY_ONE_GET_ONE or if not specified>,
+          "conditions": [ "<condition1>", "<condition2>", ... ]  // empty array if none given
         }
-        Rules:
-        1. "type" must be exactly one of: DISCOUNT, CASHBACK, BUY_ONE_GET_ONE.
+        
+        Strict Rules:
+        1. "type" must be one of DISCOUNT, CASHBACK, BUY_ONE_GET_ONE, or null if not clear.
         2. "value":
-           - For DISCOUNT or CASHBACK → must be a decimal between 0 and 1 (e.g., 0.10 = 10%).
-           - For BUY_ONE_GET_ONE → must be null.
+           - For DISCOUNT or CASHBACK → decimal between 0 and 1 (e.g., 0.10 = 10%).
+           - For BUY_ONE_GET_ONE or missing → null.
         3. "conditions":
-           - Must always be an array (even if empty).
-           - Each condition is a lowercase string using snake_case (e.g., "is_email_subscribed").
-        4. Do NOT return markdown fences, explanations, or any extra text. Output only the JSON.
+           - Always an array.
+           - Only include conditions explicitly mentioned in description.
+           - Use lowercase snake_case format (e.g., "is_email_subscribed").
+        4. Do NOT add assumptions, defaults, or extra fields.
+        5. Do NOT return markdown, explanations, or extra text. Return ONLY the JSON.
         
         Description: %s
-        """+description;
+        """ + description;
+
 
 
 
