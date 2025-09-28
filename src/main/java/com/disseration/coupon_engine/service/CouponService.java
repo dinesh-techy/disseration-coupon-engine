@@ -45,7 +45,7 @@ public class CouponService {
             if (rule.getValue() == null) missing.add("value");
             if (rule.getConditions() == null || rule.getConditions().isEmpty()) missing.add("conditions");
             RuleDraft ruleDraft = new RuleDraft(rule, missing);
-            // ✅ Build entity
+            // Build entity
             CouponRuleDraft entity = CouponRuleDraft.builder()
                     .description("Generated coupon rule")
                     .rawResponse(rawRuleResponse.getResponse())
@@ -54,7 +54,7 @@ public class CouponService {
                     .status(missing.isEmpty() ? CouponRuleDraft.Status.VALIDATED : CouponRuleDraft.Status.FAILED)
                     .build();
 
-            // ✅ Save entity
+            // Save entity
             couponRuleRepository.save(entity);
             return ruleDraft;
         }
