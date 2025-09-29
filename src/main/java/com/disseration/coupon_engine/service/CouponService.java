@@ -1,12 +1,16 @@
 package com.disseration.coupon_engine.service;
 
+import com.disseration.coupon_engine.dto.FinalizeRuleRequest;
 import com.disseration.coupon_engine.dto.OllamaResponse;
 import com.disseration.coupon_engine.dto.Rule;
 import com.disseration.coupon_engine.dto.RuleDraft;
+import com.disseration.coupon_engine.entity.CouponRule;
 import com.disseration.coupon_engine.entity.CouponRuleDraft;
+import com.disseration.coupon_engine.repository.CouponRuleDraftRepository;
 import com.disseration.coupon_engine.repository.CouponRuleRepository;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import jakarta.persistence.EntityNotFoundException;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -17,14 +21,15 @@ public class CouponService {
 
     private final OllamaService ollamaService;
     private final ObjectMapper objectMapper;
-    private final RuleParserService ruleParserService;
+    private final CouponRuleDraftRepository couponRuleDraftRepository;
     private final CouponRuleRepository couponRuleRepository;
 
-    public CouponService(OllamaService ollamaService, ObjectMapper objectMapper, RuleParserService ruleParserService, CouponRuleRepository couponRuleRepository){
+
+    public CouponService(OllamaService ollamaService, ObjectMapper objectMapper, RuleParserService ruleParserService, CouponRuleDraftRepository couponRuleDraftRepository, CouponRuleRepository ruleRepo){
         this.ollamaService = ollamaService;
         this.objectMapper = objectMapper;
-        this.ruleParserService = ruleParserService;
-        this.couponRuleRepository = couponRuleRepository;
+        this.couponRuleDraftRepository = couponRuleDraftRepository;
+        this.couponRuleRepository = ruleRepo;
     }
 
     public RuleDraft generateCouponRule(String newCouponDetails){
@@ -55,7 +60,7 @@ public class CouponService {
                     .build();
 
             // Save entity
-            couponRuleRepository.save(entity);
+            couponRuleDraftRepository.save(entity);
             return ruleDraft;
         }
         catch (JsonProcessingException jsonProcessingException){
@@ -64,5 +69,26 @@ public class CouponService {
         catch (Exception e) {
             return new RuleDraft(null, List.of("Invalid JSON from LLM: " + e.getMessage()));
         }
+    }
+
+    public CouponRule finalizeRule(FinalizeRuleRequest finalizeRuleRequest){
+        CouponRuleDraft couponRuleDraft = couponRuleDraftRepository.findById(finalizeRuleRequest.getDraftId())
+                .orElseThrow(()->new EntityNotFoundException("Rule Draft not found"));
+        // Merge fields
+        CouponRule finalRule = new CouponRule();
+        finalRule.setDescription(couponRuleDraft.getDescription());
+        finalRule.setRuleJson(couponRuleDraft.getParsedJson()); // already structured JSON
+        finalRule.setExpiryDate(finalizeRuleRequest.getExpiryDate());
+        finalRule.setUsageLimit(finalizeRuleRequest.getUsageLimit());
+        finalRule.setStatus(CouponRule.Status.FINALIZED);
+
+        // Save final rule
+        CouponRule finalizedRule = couponRuleRepository.save(finalRule);
+
+        // Update draft status so it's no longer pending
+        couponRuleDraft.setStatus(CouponRuleDraft.Status.VALIDATED);
+        couponRuleDraftRepository.save(couponRuleDraft);
+
+        return finalizedRule;
     }
 }
