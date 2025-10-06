@@ -1,38 +1,60 @@
 package com.disseration.coupon_engine.dto;
 
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
 import java.util.List;
 
-public record GeminiResponse(
-        List<Candidate> candidates,
-        UsageMetadata usageMetadata,
-        String modelVersion,
-        String responseId
-) {
-    public record Candidate(
-            Content content,
-            String finishReason,
-            double avgLogprobs
-    ) {}
+@Data
+@AllArgsConstructor
+@NoArgsConstructor
+public class GeminiResponse {
+    private List<Candidate> candidates;
+    private UsageMetadata usageMetadata;
+    private String modelVersion;
+    private String responseId;
 
-    public record Content(
-            List<Part> parts,
-            String role
-    ) {}
+    @Data
+    @AllArgsConstructor
+    @NoArgsConstructor
+    public static class Candidate {
+        private Content content;
+        private String finishReason;
+        private double avgLogprobs;
+    }
 
-    public record Part(
-            String text
-    ) {}
+    @Data
+    @AllArgsConstructor
+    @NoArgsConstructor
+    public static class Content {
+        private List<Part> parts;
+        private String role;
+    }
 
-    public record UsageMetadata(
-            int promptTokenCount,
-            int candidatesTokenCount,
-            int totalTokenCount,
-            List<TokenDetail> promptTokensDetails,
-            List<TokenDetail> candidatesTokensDetails
-    ) {}
+    @Data
+    @AllArgsConstructor
+    @NoArgsConstructor
+    public static class Part {
+        private String text;
+    }
 
-    public record TokenDetail(
-            String modality,
-            int tokenCount
-    ) {}
+    @Data
+    @AllArgsConstructor
+    @NoArgsConstructor
+    public static class UsageMetadata {
+        private int promptTokenCount;
+        private int candidatesTokenCount;
+        private int totalTokenCount;
+        private List<TokenDetail> promptTokensDetails;
+        private List<TokenDetail> candidatesTokensDetails;
+    }
+
+    @Data
+    @AllArgsConstructor
+    @NoArgsConstructor
+    public static class TokenDetail {
+        private String modality;
+        private int tokenCount;
+    }
 }

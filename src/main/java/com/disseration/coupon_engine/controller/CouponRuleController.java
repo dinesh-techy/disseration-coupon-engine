@@ -6,6 +6,8 @@ import com.disseration.coupon_engine.dto.RuleDraft;
 import com.disseration.coupon_engine.entity.CouponRule;
 import com.disseration.coupon_engine.entity.GenerateNewRule;
 import com.disseration.coupon_engine.service.CouponService;
+import com.disseration.coupon_engine.service.GeminiService;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -21,8 +23,8 @@ public class CouponRuleController {
     private CouponService couponService;
 
     @PostMapping("/generateRule")
-    public ResponseEntity<RuleDraft> generateRule(@RequestBody GenerateNewRule generateNewRule){
-        RuleDraft couponRule = couponService.generateCouponRule(generateNewRule.getNewRule());
+    public ResponseEntity<RuleDraft> generateRule(@RequestBody GenerateNewRule generateNewRule) throws JsonProcessingException {
+        RuleDraft couponRule = couponService.generateCouponRuleGemini(generateNewRule.getNewRule());
         return ResponseEntity.status(201).body(couponRule);
     }
 
