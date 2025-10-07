@@ -3,6 +3,8 @@ package com.disseration.coupon_engine.entity;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.GenericGenerator;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 
 import java.util.UUID;
 
@@ -16,9 +18,8 @@ import java.util.UUID;
 public class CouponRuleDraft {
 
     @Id
-    @GeneratedValue(generator = "UUID")
-    @GenericGenerator(name = "UUID", strategy = "org.hibernate.id.UUIDGenerator")
-    @Column(name = "id", updatable = false, nullable = false, columnDefinition = "UUID")
+    @GeneratedValue
+    @JdbcTypeCode(SqlTypes.UUID)
     private UUID id;
 
     @Column(columnDefinition = "TEXT")

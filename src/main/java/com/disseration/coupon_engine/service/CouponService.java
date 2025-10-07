@@ -59,7 +59,8 @@ public class CouponService {
                     .build();
 
             // Save entity
-            couponRuleDraftRepository.save(entity);
+            CouponRuleDraft savedDraft = couponRuleDraftRepository.saveAndFlush(entity);
+            ruleDraft.setRuleDraftId(savedDraft.getId());
             return ruleDraft;
         }
         catch (JsonProcessingException jsonProcessingException){
@@ -120,7 +121,8 @@ public class CouponService {
                     .build();
 
             // Save entity
-            couponRuleDraftRepository.save(entity);
+            CouponRuleDraft savedDraft = couponRuleDraftRepository.saveAndFlush(entity);
+            ruleDraft.setRuleDraftId(savedDraft.getId());
             return ruleDraft;
         }
         catch (JsonProcessingException jsonProcessingException){
