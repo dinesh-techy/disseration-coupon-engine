@@ -6,7 +6,9 @@ import com.disseration.coupon_engine.entity.CouponRuleDraft;
 import com.disseration.coupon_engine.repository.CouponRuleDraftRepository;
 import com.disseration.coupon_engine.repository.CouponRuleRepository;
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import jakarta.persistence.EntityNotFoundException;
 import org.springframework.stereotype.Service;
 
@@ -71,19 +73,37 @@ public class CouponService {
         }
     }
 
-    public CouponRule finalizeRule(FinalizeRuleRequest finalizeRuleRequest){
+    public CouponRule finalizeRule(FinalizeRuleRequest finalizeRuleRequest) throws JsonProcessingException {
         CouponRuleDraft couponRuleDraft = couponRuleDraftRepository.findById(finalizeRuleRequest.getDraftId())
                 .orElseThrow(()->new EntityNotFoundException("Rule Draft not found"));
         // Merge fields
         CouponRule finalRule = new CouponRule();
         finalRule.setDescription(couponRuleDraft.getDescription());
-        finalRule.setRuleJson(couponRuleDraft.getParsedJson()); // already structured JSON
+
+        ObjectMapper objectMapper = new ObjectMapper();
+
+// Parse the existing JSON string
+        JsonNode jsonNode = objectMapper.readTree(couponRuleDraft.getParsedJson());
+
+// Cast to ObjectNode to allow modification
+        ObjectNode objectNode = (ObjectNode) jsonNode;
+// Update values
+        objectNode.put("expiryDate", "2025-12-31");
+        objectNode.put("usageLimit", 5);
+        objectNode.put("stackable", true);
+
+// Convert back to String
+        String updatedJson = objectMapper.writeValueAsString(objectNode);
+
+// Set to finalRule
+        finalRule.setRuleJson(updatedJson);
+
         finalRule.setExpiryDate(finalizeRuleRequest.getExpiryDate());
         finalRule.setUsageLimit(finalizeRuleRequest.getUsageLimit());
         finalRule.setStatus(CouponRule.Status.FINALIZED);
 
         // Save final rule
-        CouponRule finalizedRule = couponRuleRepository.save(finalRule);
+        CouponRule finalizedRule = couponRuleRepository.saveAndFlush(finalRule);
 
         // Update draft status so it's no longer pending
         couponRuleDraft.setStatus(CouponRuleDraft.Status.VALIDATED);

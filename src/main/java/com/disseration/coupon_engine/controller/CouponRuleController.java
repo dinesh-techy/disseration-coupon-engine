@@ -29,7 +29,7 @@ public class CouponRuleController {
     }
 
     @PostMapping("/finalizeRule")
-    public ResponseEntity<CouponRule> finalizeRule(@RequestBody FinalizeRuleRequest finalizeRuleRequest){
+    public ResponseEntity<CouponRule> finalizeRule(@RequestBody FinalizeRuleRequest finalizeRuleRequest) throws JsonProcessingException {
         CouponRule couponRule = couponService.finalizeRule(finalizeRuleRequest);
         return ResponseEntity.status(200).body(couponRule);
     }
