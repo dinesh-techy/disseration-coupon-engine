@@ -11,6 +11,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 @RequestMapping("/rule")
 @RestController
 public class CouponRuleController {
@@ -27,6 +29,12 @@ public class CouponRuleController {
     @GetMapping
     public ResponseEntity<CouponRule> getCouponRuleById(@RequestParam String couponId){
         CouponRule couponRule = couponService.getCouponRuleById(couponId);
+        return ResponseEntity.status(200).body(couponRule);
+    }
+
+    @GetMapping("couponByType/{couponType}")
+    public ResponseEntity<List<CouponRule>> getCouponByType(@PathVariable String couponType){
+        List<CouponRule> couponRule = couponService.getCouponRuleByType(couponType);
         return ResponseEntity.status(200).body(couponRule);
     }
 

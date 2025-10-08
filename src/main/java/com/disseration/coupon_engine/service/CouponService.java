@@ -118,6 +118,10 @@ public class CouponService {
         return  couponRule.orElseThrow();
     }
 
+    public List<CouponRule> getCouponRuleByType(String couponType){
+        return couponRuleRepository.findByRuleType(couponType);
+    }
+
     public CouponDeleteDTO deleteCouponRuleById(String couponRuleId){
         couponRuleRepository.deleteById(UUID.fromString(couponRuleId));
         return new CouponDeleteDTO(UUID.fromString(couponRuleId),"Coupon Rule deleted!");
