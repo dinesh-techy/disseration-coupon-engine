@@ -148,6 +148,7 @@ public class CouponService {
                     .rawResponse(rule.toString())
                     .parsedJson(objectMapper.writeValueAsString(rule))   // store JSON
                     .missingFields(objectMapper.writeValueAsString(missing)) // store missing fields as JSON
+                    .ruleType(rule.getType())
                     .status(missing.isEmpty() ? CouponRuleDraft.Status.VALIDATED : CouponRuleDraft.Status.FAILED)
                     .build();
 
