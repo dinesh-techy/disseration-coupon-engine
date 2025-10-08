@@ -7,10 +7,12 @@ import java.util.UUID;
 public class RuleDraft {
     private UUID ruleDraftId;
     private Rule rule;
+    private String ruleType;
     private List<String> missingFields;
 
     public RuleDraft(Rule rule, List<String> missingFields) {
         this.rule = rule;
         this.missingFields = missingFields;
+        this.ruleType=rule.getType();
     }
 }

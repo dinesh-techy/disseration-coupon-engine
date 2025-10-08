@@ -28,6 +28,9 @@ public class CouponRuleDraft {
     @Column(name = "raw_response", columnDefinition = "TEXT")
     private String rawResponse;
 
+    @Column(name = "rule_type", columnDefinition = "TEXT")
+    private String ruleType;
+
     @Column(name = "parsed_json", columnDefinition = "TEXT")
     private String parsedJson;
 

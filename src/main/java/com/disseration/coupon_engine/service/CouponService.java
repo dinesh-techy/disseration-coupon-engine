@@ -81,6 +81,7 @@ public class CouponService {
         // Merge fields
         CouponRule finalRule = new CouponRule();
         finalRule.setDescription(couponRuleDraft.getDescription());
+        finalRule.setRuleType(couponRuleDraft.getRuleType());
 
         ObjectMapper objectMapper = new ObjectMapper();
 
@@ -98,7 +99,6 @@ public class CouponService {
 
         // Set to finalRule
         finalRule.setRuleJson(updatedJson);
-
         finalRule.setExpiryDate(finalizeRuleRequest.getExpiryDate());
         finalRule.setUsageLimit(finalizeRuleRequest.getUsageLimit());
         finalRule.setStatus(CouponRule.Status.FINALIZED);

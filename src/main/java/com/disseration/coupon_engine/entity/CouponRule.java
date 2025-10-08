@@ -21,6 +21,9 @@ public class CouponRule {
     @Column(columnDefinition = "TEXT")
     private String description;
 
+    @Column(name = "rule_type", columnDefinition = "TEXT")
+    private String ruleType;
+
     @Column(name = "rule_json", columnDefinition = "TEXT")
     private String ruleJson;
 
