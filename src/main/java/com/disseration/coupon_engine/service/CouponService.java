@@ -14,6 +14,8 @@ import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
 
 @Service
 public class CouponService {
@@ -82,20 +84,19 @@ public class CouponService {
 
         ObjectMapper objectMapper = new ObjectMapper();
 
-// Parse the existing JSON string
+        // Parse the existing JSON string
         JsonNode jsonNode = objectMapper.readTree(couponRuleDraft.getParsedJson());
 
-// Cast to ObjectNode to allow modification
+        // Cast to ObjectNode to allow modification
         ObjectNode objectNode = (ObjectNode) jsonNode;
-// Update values
+
         objectNode.put("expiryDate", "2025-12-31");
         objectNode.put("usageLimit", 5);
         objectNode.put("stackable", true);
 
-// Convert back to String
         String updatedJson = objectMapper.writeValueAsString(objectNode);
 
-// Set to finalRule
+        // Set to finalRule
         finalRule.setRuleJson(updatedJson);
 
         finalRule.setExpiryDate(finalizeRuleRequest.getExpiryDate());
@@ -110,6 +111,16 @@ public class CouponService {
         couponRuleDraftRepository.save(couponRuleDraft);
 
         return finalizedRule;
+    }
+
+    public CouponRule getCouponRuleById(String couponRuleId){
+        Optional<CouponRule> couponRule = couponRuleRepository.findById(UUID.fromString(couponRuleId));
+        return  couponRule.orElseThrow();
+    }
+
+    public CouponDeleteDTO deleteCouponRuleById(String couponRuleId){
+        couponRuleRepository.deleteById(UUID.fromString(couponRuleId));
+        return new CouponDeleteDTO(UUID.fromString(couponRuleId),"Coupon Rule deleted!");
     }
 
     // Gemini API logic
@@ -152,5 +163,7 @@ public class CouponService {
             return new RuleDraft(null, List.of("Invalid JSON from LLM: " + e.getMessage()));
         }
     }
+
+
 
 }
