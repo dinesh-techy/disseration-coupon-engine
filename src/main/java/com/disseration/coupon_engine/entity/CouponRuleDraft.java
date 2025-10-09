@@ -1,11 +1,14 @@
 package com.disseration.coupon_engine.entity;
 
+import com.disseration.coupon_engine.dto.Rule;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.GenericGenerator;
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
 
+import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 @Entity
@@ -31,11 +34,14 @@ public class CouponRuleDraft {
     @Column(name = "rule_type", columnDefinition = "TEXT")
     private String ruleType;
 
-    @Column(name = "parsed_json", columnDefinition = "TEXT")
-    private String parsedJson;
+    // 👇 Store entire Rule object as JSON
+    @JdbcTypeCode(SqlTypes.JSON)
+    @Column(name = "parsed_json", columnDefinition = "jsonb")
+    private Rule parsedJson;
 
-    @Column(name = "missing_fields", columnDefinition = "TEXT")
-    private String missingFields;
+    @JdbcTypeCode(SqlTypes.JSON)
+    @Column(name = "missing_fields", columnDefinition = "jsonb")
+    private List<String> missingFields;
 
     @Enumerated(EnumType.STRING)
     @Column(length = 50, nullable = false)

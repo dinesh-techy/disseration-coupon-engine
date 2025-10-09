@@ -1,8 +1,11 @@
 package com.disseration.coupon_engine.entity;
 
+import com.disseration.coupon_engine.dto.Rule;
 import jakarta.persistence.*;
 import lombok.Data;
 import org.hibernate.annotations.GenericGenerator;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 
 import java.time.LocalDate;
 import java.util.UUID;
@@ -24,8 +27,10 @@ public class CouponRule {
     @Column(name = "rule_type", columnDefinition = "TEXT")
     private String ruleType;
 
-    @Column(name = "rule_json", columnDefinition = "TEXT")
-    private String ruleJson;
+    // ✅ Store full Rule as JSONB instead of String
+    @JdbcTypeCode(SqlTypes.JSON)
+    @Column(name = "rule_json", columnDefinition = "jsonb")
+    private Rule ruleJson;
 
     private LocalDate expiryDate;
 

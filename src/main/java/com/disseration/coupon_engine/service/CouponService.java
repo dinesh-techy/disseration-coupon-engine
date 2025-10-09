@@ -8,7 +8,9 @@ import com.disseration.coupon_engine.repository.CouponRuleRepository;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import jakarta.persistence.EntityNotFoundException;
 import org.springframework.stereotype.Service;
 
@@ -59,8 +61,8 @@ public class CouponService {
             CouponRuleDraft entity = CouponRuleDraft.builder()
                     .description("Generated coupon rule")
                     .rawResponse(rawRuleResponse.getResponse())
-                    .parsedJson(objectMapper.writeValueAsString(rule))   // store JSON
-                    .missingFields(objectMapper.writeValueAsString(missing)) // store missing fields as JSON
+                    .parsedJson(rule)   // store JSON
+                    .missingFields(missing) // store missing fields as JSON
                     .status(missing.isEmpty() ? CouponRuleDraft.Status.VALIDATED : CouponRuleDraft.Status.FAILED)
                     .build();
 
@@ -85,10 +87,13 @@ public class CouponService {
         finalRule.setDescription(couponRuleDraft.getDescription());
         finalRule.setRuleType(couponRuleDraft.getRuleType());
 
+        // ✅ Properly configured ObjectMapper
         ObjectMapper objectMapper = new ObjectMapper();
+        objectMapper.registerModule(new JavaTimeModule());
+        objectMapper.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
 
         // Parse the existing JSON string
-        JsonNode jsonNode = objectMapper.readTree(couponRuleDraft.getParsedJson());
+        JsonNode jsonNode = objectMapper.valueToTree(couponRuleDraft.getParsedJson());
 
         // Cast to ObjectNode to allow modification
         ObjectNode objectNode = (ObjectNode) jsonNode;
@@ -99,8 +104,11 @@ public class CouponService {
 
         String updatedJson = objectMapper.writeValueAsString(objectNode);
 
+        // ✅ Deserialize JSON string into Rule object (LocalDate handled)
+        Rule updatedRuleJson = objectMapper.readValue(updatedJson, Rule.class);
+
         // Set to finalRule
-        finalRule.setRuleJson(updatedJson);
+        finalRule.setRuleJson(updatedRuleJson);
         finalRule.setExpiryDate(finalizeRuleRequest.getExpiryDate());
         finalRule.setUsageLimit(finalizeRuleRequest.getUsageLimit());
         finalRule.setStatus(CouponRule.Status.FINALIZED);
@@ -144,8 +152,8 @@ public class CouponService {
             CouponRuleDraft entity = CouponRuleDraft.builder()
                     .description("Generated coupon rule")
                     .rawResponse(rule.toString())
-                    .parsedJson(objectMapper.writeValueAsString(rule))   // store JSON
-                    .missingFields(objectMapper.writeValueAsString(ruleDraft.getMissingFields())) // store missing fields as JSON
+                    .parsedJson(rule)   // store JSON
+                    .missingFields(ruleDraft.getMissingFields()) // store missing fields as JSON
                     .ruleType(rule.getType())
                     .status(ruleDraft.getMissingFields().isEmpty() ? CouponRuleDraft.Status.VALIDATED : CouponRuleDraft.Status.FAILED)
                     .build();
