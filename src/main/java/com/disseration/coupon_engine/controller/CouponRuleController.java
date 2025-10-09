@@ -1,8 +1,10 @@
 package com.disseration.coupon_engine.controller;
 
 import com.disseration.coupon_engine.dto.CouponDeleteDTO;
+import com.disseration.coupon_engine.dto.FinalizeRuleRequest;
 import com.disseration.coupon_engine.entity.CouponRule;
-import com.disseration.coupon_engine.service.CouponService;
+import com.disseration.coupon_engine.service.CouponRuleService;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -13,23 +15,29 @@ import java.util.List;
 @RestController
 public class CouponRuleController {
     @Autowired
-    private CouponService couponService;
+    private CouponRuleService couponRuleService;
 
-    @GetMapping
-    public ResponseEntity<CouponRule> getFinalizedCouponRuleById(@RequestParam String couponId){
-        CouponRule couponRule = couponService.getCouponRuleById(couponId);
+    @GetMapping(params = {"ruleId"})
+    public ResponseEntity<CouponRule> getFinalizedCouponRuleById(@RequestParam String ruleId){
+        CouponRule couponRule = couponRuleService.getCouponRuleById(ruleId);
         return ResponseEntity.status(200).body(couponRule);
     }
 
-    @GetMapping("byType")
-    public ResponseEntity<List<CouponRule>> getCouponByType(@RequestParam String couponType){
-        List<CouponRule> couponRule = couponService.getCouponRuleByType(couponType);
+    @GetMapping(params = {"type"})
+    public ResponseEntity<List<CouponRule>> getCouponByType(@RequestParam String type){
+        List<CouponRule> couponRule = couponRuleService.getCouponRuleByType(type);
+        return ResponseEntity.status(200).body(couponRule);
+    }
+
+    @PostMapping("/finalize")
+    public ResponseEntity<CouponRule> finalizeRule(@RequestBody FinalizeRuleRequest finalizeRuleRequest) throws JsonProcessingException {
+        CouponRule couponRule = couponRuleService.finalizeRule(finalizeRuleRequest);
         return ResponseEntity.status(200).body(couponRule);
     }
 
     @DeleteMapping
     public ResponseEntity<CouponDeleteDTO> deleteCouponRuleById(@RequestParam String couponId){
-        CouponDeleteDTO deletedCouponRuleById = couponService.deleteCouponRuleById(couponId);
+        CouponDeleteDTO deletedCouponRuleById = couponRuleService.deleteCouponRuleById(couponId);
         return ResponseEntity.status(200).body(deletedCouponRuleById);
     }
 }

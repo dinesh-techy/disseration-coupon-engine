@@ -3,12 +3,10 @@ package com.disseration.coupon_engine.entity;
 import com.disseration.coupon_engine.dto.Rule;
 import jakarta.persistence.*;
 import lombok.*;
-import org.hibernate.annotations.GenericGenerator;
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
 
 import java.util.List;
-import java.util.Map;
 import java.util.UUID;
 
 @Entity
