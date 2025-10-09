@@ -79,6 +79,17 @@ public class CouponService {
         }
     }
 
+
+    public CouponRuleDraft getRuleDraftById(String ruleDraftId){
+        Optional<CouponRuleDraft> ruleDraft = couponRuleDraftRepository.findById(UUID.fromString(ruleDraftId));
+        return ruleDraft.orElseThrow();
+    }
+
+    public CouponDeleteDTO deleteRuleDraftById(String ruleDraftId){
+        couponRuleDraftRepository.deleteById(UUID.fromString(ruleDraftId));
+        return new CouponDeleteDTO(UUID.fromString(ruleDraftId),"Coupon Draft Rule deleted!");
+    }
+
     public CouponRule getCouponRuleById(String couponRuleId){
         Optional<CouponRule> couponRule = couponRuleRepository.findById(UUID.fromString(couponRuleId));
         return  couponRule.orElseThrow();
