@@ -2,9 +2,7 @@ package com.disseration.coupon_engine.service;
 
 import com.disseration.coupon_engine.api.GeminiApi;
 import com.disseration.coupon_engine.dto.GeminiResponse;
-import com.disseration.coupon_engine.dto.OllamaResponse;
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.stereotype.Service;
 
 @Service

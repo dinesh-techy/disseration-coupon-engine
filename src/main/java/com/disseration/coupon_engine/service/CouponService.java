@@ -25,14 +25,16 @@ public class CouponService {
     private final CouponRuleDraftRepository couponRuleDraftRepository;
     private final CouponRuleRepository couponRuleRepository;
     private final GeminiService geminiService;
+    private final CouponTransformer couponTransformer;
 
 
-    public CouponService(OllamaService ollamaService, ObjectMapper objectMapper, RuleParserService ruleParserService, CouponRuleDraftRepository couponRuleDraftRepository, CouponRuleRepository ruleRepo, GeminiService geminiService){
+    public CouponService(OllamaService ollamaService, ObjectMapper objectMapper, RuleParserService ruleParserService, CouponRuleDraftRepository couponRuleDraftRepository, CouponRuleRepository ruleRepo, GeminiService geminiService, CouponTransformer couponTransformer){
         this.ollamaService = ollamaService;
         this.objectMapper = objectMapper;
         this.couponRuleDraftRepository = couponRuleDraftRepository;
         this.couponRuleRepository = ruleRepo;
         this.geminiService = geminiService;
+        this.couponTransformer = couponTransformer;
     }
 
     public RuleDraft generateCouponRule(String newCouponDetails){
@@ -132,28 +134,20 @@ public class CouponService {
         try {
 
             GeminiResponse rawRuleResponse = geminiService.generateRule(newCouponDetails);
+            // Transform Gemini Response into Rule Json
+            Rule rule = couponTransformer.transformGeminiRuleGenerationResponse(rawRuleResponse);
 
-            RuleParserService parser = new RuleParserService(objectMapper);
-            Rule rule = parser.parse(rawRuleResponse.getCandidates().get(0).getContent().getParts().get(0).getText());
+            // RuleDraft Object creation
+            RuleDraft ruleDraft = ruleDraftValidation(rule);
 
-            if (rawRuleResponse.getCandidates() == null) {
-                throw new RuntimeException("Gemini API returned null response");
-            }
-
-            // Validate required fields
-            List<String> missing = new ArrayList<>();
-            if (rule.getType() == null) missing.add("type");
-            if (rule.getValue() == null) missing.add("value");
-            if (rule.getConditions() == null || rule.getConditions().isEmpty()) missing.add("conditions");
-            RuleDraft ruleDraft = new RuleDraft(rule, missing);
-            // Build entity
+            // Build entity to store in DB
             CouponRuleDraft entity = CouponRuleDraft.builder()
                     .description("Generated coupon rule")
                     .rawResponse(rule.toString())
                     .parsedJson(objectMapper.writeValueAsString(rule))   // store JSON
-                    .missingFields(objectMapper.writeValueAsString(missing)) // store missing fields as JSON
+                    .missingFields(objectMapper.writeValueAsString(ruleDraft.getMissingFields())) // store missing fields as JSON
                     .ruleType(rule.getType())
-                    .status(missing.isEmpty() ? CouponRuleDraft.Status.VALIDATED : CouponRuleDraft.Status.FAILED)
+                    .status(ruleDraft.getMissingFields().isEmpty() ? CouponRuleDraft.Status.VALIDATED : CouponRuleDraft.Status.FAILED)
                     .build();
 
             // Save entity
@@ -169,6 +163,12 @@ public class CouponService {
         }
     }
 
-
-
+    private RuleDraft ruleDraftValidation(Rule rule){
+        // Validate required fields
+        List<String> missing = new ArrayList<>();
+        if (rule.getType() == null) missing.add("type");
+        if (rule.getValue() == null) missing.add("value");
+        if (rule.getConditions() == null || rule.getConditions().isEmpty()) missing.add("conditions");
+        return new RuleDraft(rule, missing);
+    }
 }
