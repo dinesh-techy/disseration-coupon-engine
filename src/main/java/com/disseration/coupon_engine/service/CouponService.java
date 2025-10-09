@@ -79,50 +79,6 @@ public class CouponService {
         }
     }
 
-    public CouponRule finalizeRule(FinalizeRuleRequest finalizeRuleRequest) throws JsonProcessingException {
-        CouponRuleDraft couponRuleDraft = couponRuleDraftRepository.findById(finalizeRuleRequest.getDraftId())
-                .orElseThrow(()->new EntityNotFoundException("Rule Draft not found"));
-        // Merge fields
-        CouponRule finalRule = new CouponRule();
-        finalRule.setDescription(couponRuleDraft.getDescription());
-        finalRule.setRuleType(couponRuleDraft.getRuleType());
-
-        // ✅ Properly configured ObjectMapper
-        ObjectMapper objectMapper = new ObjectMapper();
-        objectMapper.registerModule(new JavaTimeModule());
-        objectMapper.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
-
-        // Parse the existing JSON string
-        JsonNode jsonNode = objectMapper.valueToTree(couponRuleDraft.getParsedJson());
-
-        // Cast to ObjectNode to allow modification
-        ObjectNode objectNode = (ObjectNode) jsonNode;
-
-        objectNode.put("expiryDate", "2025-12-31");
-        objectNode.put("usageLimit", 5);
-        objectNode.put("stackable", true);
-
-        String updatedJson = objectMapper.writeValueAsString(objectNode);
-
-        // ✅ Deserialize JSON string into Rule object (LocalDate handled)
-        Rule updatedRuleJson = objectMapper.readValue(updatedJson, Rule.class);
-
-        // Set to finalRule
-        finalRule.setRuleJson(updatedRuleJson);
-        finalRule.setExpiryDate(finalizeRuleRequest.getExpiryDate());
-        finalRule.setUsageLimit(finalizeRuleRequest.getUsageLimit());
-        finalRule.setStatus(CouponRule.Status.FINALIZED);
-
-        // Save final rule
-        CouponRule finalizedRule = couponRuleRepository.saveAndFlush(finalRule);
-
-        // Update draft status so it's no longer pending
-        couponRuleDraft.setStatus(CouponRuleDraft.Status.VALIDATED);
-        couponRuleDraftRepository.save(couponRuleDraft);
-
-        return finalizedRule;
-    }
-
     public CouponRule getCouponRuleById(String couponRuleId){
         Optional<CouponRule> couponRule = couponRuleRepository.findById(UUID.fromString(couponRuleId));
         return  couponRule.orElseThrow();
@@ -170,6 +126,25 @@ public class CouponService {
             return new RuleDraft(null, List.of("Invalid JSON from LLM: " + e.getMessage()));
         }
     }
+
+
+    public CouponRule finalizeRule(FinalizeRuleRequest finalizeRuleRequest) throws JsonProcessingException {
+        CouponRuleDraft couponRuleDraft = couponRuleDraftRepository.findById(finalizeRuleRequest.getDraftId())
+                .orElseThrow(()->new EntityNotFoundException("Rule Draft not found"));
+
+        // Final CouponRule Object creation
+        CouponRule finalRule = couponTransformer.createFinalCouponRuleObject(couponRuleDraft,finalizeRuleRequest);
+
+        // Save final rule
+        CouponRule finalizedRule = couponRuleRepository.saveAndFlush(finalRule);
+
+        // Update draft status so it's no longer pending
+        couponRuleDraft.setStatus(CouponRuleDraft.Status.VALIDATED);
+        couponRuleDraftRepository.save(couponRuleDraft);
+
+        return finalizedRule;
+    }
+
 
     private RuleDraft ruleDraftValidation(Rule rule){
         // Validate required fields
