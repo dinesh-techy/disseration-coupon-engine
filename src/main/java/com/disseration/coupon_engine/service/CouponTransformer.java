@@ -34,6 +34,7 @@ public class CouponTransformer {
     public CouponRule createFinalCouponRuleObject(CouponRuleDraft couponRuleDraft, FinalizeRuleRequest finalizeRuleRequest) throws JsonProcessingException {
         // Merge fields
         CouponRule finalRule = new CouponRule();
+        finalRule.setId(couponRuleDraft.getId());
         finalRule.setDescription(couponRuleDraft.getDescription());
         finalRule.setRuleType(couponRuleDraft.getRuleType());
 
