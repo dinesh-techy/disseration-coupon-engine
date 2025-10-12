@@ -3,14 +3,15 @@ package com.disseration.coupon_engine.service;
 import com.disseration.coupon_engine.dto.*;
 import com.disseration.coupon_engine.entity.CouponRule;
 import com.disseration.coupon_engine.entity.CouponRuleDraft;
+import com.disseration.coupon_engine.errorHandling.CouponDeleteException;
+import com.disseration.coupon_engine.errorHandling.CouponFinalizeException;
+import com.disseration.coupon_engine.errorHandling.CouponNotFoundException;
 import com.disseration.coupon_engine.repository.CouponRuleDraftRepository;
 import com.disseration.coupon_engine.repository.CouponRuleRepository;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import jakarta.persistence.EntityNotFoundException;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -30,21 +31,30 @@ public class CouponRuleService {
 
     public CouponRule getCouponRuleById(String couponRuleId){
         Optional<CouponRule> couponRule = couponRuleRepository.findById(UUID.fromString(couponRuleId));
-        return  couponRule.orElseThrow();
+        return couponRule.orElseThrow(() -> new CouponNotFoundException("Rule not found ruleId" + couponRuleId));
     }
 
     public List<CouponRule> getCouponRuleByType(String couponType){
-        return couponRuleRepository.findByRuleType(couponType);
+        try{
+            return couponRuleRepository.findByRuleType(couponType);
+        } catch (Exception e) {
+            throw new CouponNotFoundException("Specified coupon type "+couponType+" not found");
+        }
     }
 
     public CouponDeleteDTO deleteCouponRuleById(String couponRuleId){
-        couponRuleRepository.deleteById(UUID.fromString(couponRuleId));
-        return new CouponDeleteDTO(UUID.fromString(couponRuleId),"Coupon Rule deleted!");
+        try{
+            couponRuleRepository.deleteById(UUID.fromString(couponRuleId));
+            return new CouponDeleteDTO(UUID.fromString(couponRuleId),"Coupon Rule deleted!");
+        } catch (Exception e) {
+            throw new CouponDeleteException("Coupon Id "+couponRuleId + " delete failed!");
+        }
+
     }
 
     public CouponRule finalizeRule(FinalizeRuleRequest finalizeRuleRequest) throws JsonProcessingException {
         CouponRuleDraft couponRuleDraft = couponRuleDraftRepository.findById(finalizeRuleRequest.getDraftId())
-                .orElseThrow(()->new EntityNotFoundException("Rule Draft not found"));
+                .orElseThrow(()->new CouponNotFoundException("Coupon   Rule Draft not found"));
 
         // Final CouponRule Object creation
         CouponRule finalRule = couponTransformer.createFinalCouponRuleObject(couponRuleDraft,finalizeRuleRequest);
@@ -54,8 +64,12 @@ public class CouponRuleService {
 
         // Update draft status so it's no longer pending
         couponRuleDraft.setStatus(CouponRuleDraft.Status.VALIDATED);
-        couponRuleDraftRepository.save(couponRuleDraft);
+        try {
+            couponRuleDraftRepository.save(couponRuleDraft);
+            return finalizedRule;
+        } catch (Exception e) {
+            throw new CouponFinalizeException("CouponFinalize failed for the draftId "+finalizedRule.getId());
+        }
 
-        return finalizedRule;
     }
 }

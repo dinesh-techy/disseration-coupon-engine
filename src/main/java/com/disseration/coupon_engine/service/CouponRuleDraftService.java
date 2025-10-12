@@ -2,6 +2,8 @@ package com.disseration.coupon_engine.service;
 
 import com.disseration.coupon_engine.dto.*;
 import com.disseration.coupon_engine.entity.CouponRuleDraft;
+import com.disseration.coupon_engine.errorHandling.CouponDeleteException;
+import com.disseration.coupon_engine.errorHandling.CouponNotFoundException;
 import com.disseration.coupon_engine.repository.CouponRuleDraftRepository;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import org.springframework.stereotype.Service;
@@ -66,12 +68,17 @@ public class CouponRuleDraftService {
 
     public CouponRuleDraft getRuleDraftById(String ruleDraftId){
         Optional<CouponRuleDraft> ruleDraft = couponRuleDraftRepository.findById(UUID.fromString(ruleDraftId));
-        return ruleDraft.orElseThrow();
+        return ruleDraft.orElseThrow(()-> new CouponNotFoundException("Coupon draft "+ruleDraftId+ " not found!"));
     }
 
     public CouponDeleteDTO deleteRuleDraftById(String ruleDraftId){
-        couponRuleDraftRepository.deleteById(UUID.fromString(ruleDraftId));
-        return new CouponDeleteDTO(UUID.fromString(ruleDraftId),"Coupon Draft Rule deleted!");
+        try {
+            couponRuleDraftRepository.deleteById(UUID.fromString(ruleDraftId));
+            return new CouponDeleteDTO(UUID.fromString(ruleDraftId),"Coupon Draft Rule deleted!");
+        } catch (Exception e) {
+            throw new CouponDeleteException("Coupon deletion failed draftId "+ruleDraftId);
+        }
+
     }
 
     public RuleDraft generateCouponDraftRule(String newCouponDetails){
