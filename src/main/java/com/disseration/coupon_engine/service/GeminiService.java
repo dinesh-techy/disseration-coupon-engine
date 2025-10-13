@@ -71,57 +71,33 @@ public class GeminiService {
                 You are a coupon name and code generator for a coupon engine.
                 Your input is a structured rule string that contains details about a coupon rule.
                 Your task is to generate:
-                
                 A coupon name – short, readable, and marketing-friendly for end users.
-                
                 A coupon code – uppercase, alphanumeric, system-friendly identifier.
-                
                 Output Format
-                
                 Return a strict JSON object only in the following format:
-                
                 {
                   "couponName": "string",
                   "couponCode": "string"
                 }
-                
                 Rules
                 1. couponName
-                
                 Must be concise (max 6 words) and human-readable.
-                
                 Use Title Case (e.g., “10% Off Electronics”).
-                
                 Derive from the rule fields:
-                
                 type: determines the offer type (DISCOUNT → “Off”, CASHBACK → “Cashback”, BUY_ONE_GET_ONE → “BOGO Offer”).
-                
                 value: convert decimal to percentage (e.g., 0.10 → “10%”).
-                
                 conditions: include condition value (e.g., category=electronics → “Electronics”).
-                
                 Ignore null fields.
-                
                 If type/value/condition are missing, use a generic fallback like “Exclusive Spare Parts Offer”.
-                
                 2. couponCode
-                
                 Must be UPPERCASE, no spaces, ≤ 15 characters.
-                
                 Construct from key rule fields:
-                
                 Category or condition value → e.g., ELECTRONICS, OILFILTER
-                
                 Offer type/value → e.g., 10OFF, CASH200, BOGO
-                
                 Optional keyword for context → e.g., NEWUSER, FESTIVE
-                
                 Remove all non-alphanumeric symbols.
-                
                 Use underscore _ only if needed for readability.
-                
                 If insufficient data, use a fallback like "SPAREPARTSDEAL".
-                
                 Examples
                 Input	Output
                 Rule(type=DISCOUNT, value=0.10, conditions=[Condition(field=category, operator=equals, value=electronics)], expiryDate=null, usageLimit=null, stackable=null)	{ "couponName": "10% Off Electronics", "couponCode": "ELECTRONICS10OFF" }
@@ -129,9 +105,7 @@ public class GeminiService {
                 Rule(type=BUY_ONE_GET_ONE, value=null, conditions=[Condition(field=category, operator=equals, value=oil_filter)], expiryDate=null, usageLimit=null, stackable=null)	{ "couponName": "Oil Filter BOGO Offer", "couponCode": "OILFILTERBOGO" }
                 Rule(type=DISCOUNT, value=0.15, conditions=[], expiryDate=null, usageLimit=null, stackable=null)	{ "couponName": "15% Off Spare Parts", "couponCode": "SPAREPARTS15OFF" }
                 Final Output Requirement
-                
                 Output only the JSON object — no text or explanation.
-                
                 Input Rule: %s
         """ + couponRawJson;
         GeminiResponse rawResponse = geminiApi.generateText(prompt);
