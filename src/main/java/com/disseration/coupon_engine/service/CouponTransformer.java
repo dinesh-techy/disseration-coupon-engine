@@ -1,5 +1,6 @@
 package com.disseration.coupon_engine.service;
 
+import com.disseration.coupon_engine.dto.CouponNameCode;
 import com.disseration.coupon_engine.dto.FinalizeRuleRequest;
 import com.disseration.coupon_engine.dto.GeminiResponse;
 import com.disseration.coupon_engine.dto.Rule;
@@ -29,6 +30,14 @@ public class CouponTransformer {
         RuleParserService parser = new RuleParserService(objectMapper);
         Rule ruleDraft = parser.parse(geminiResponse.getCandidates().get(0).getContent().getParts().get(0).getText());
         return ruleDraft;
+    }
+
+    public CouponNameCode transformGeminiCouponNameGenerationResponse(GeminiResponse geminiResponse){
+        if (geminiResponse.getCandidates() == null) {
+            throw new RuntimeException("Gemini API returned null response");
+        }
+        CouponNameCodeParserService parser = new CouponNameCodeParserService(objectMapper);
+        return parser.parse(geminiResponse.getCandidates().get(0).getContent().getParts().get(0).getText());
     }
 
     public CouponRule createFinalCouponRuleObject(CouponRuleDraft couponRuleDraft, FinalizeRuleRequest finalizeRuleRequest) throws JsonProcessingException {

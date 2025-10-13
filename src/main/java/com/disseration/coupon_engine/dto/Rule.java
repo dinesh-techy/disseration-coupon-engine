@@ -29,6 +29,8 @@ public class Rule {
     private LocalDate expiryDate;
     private Integer usageLimit;
     private Boolean stackable;
+    private String couponName;
+    private String couponCode;
 
     // This setter handles the single "condition" field from JSON
     @JsonProperty("condition")

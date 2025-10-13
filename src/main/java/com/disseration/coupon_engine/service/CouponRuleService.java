@@ -22,11 +22,13 @@ public class CouponRuleService {
     private final CouponRuleDraftRepository couponRuleDraftRepository;
     private final CouponRuleRepository couponRuleRepository;
     private final CouponTransformer couponTransformer;
+    private final GeminiService geminiService;
 
-    public CouponRuleService(OllamaService ollamaService, ObjectMapper objectMapper, RuleParserService ruleParserService, CouponRuleDraftRepository couponRuleDraftRepository, CouponRuleRepository ruleRepo, GeminiService geminiService, CouponTransformer couponTransformer){
+    public CouponRuleService(OllamaService ollamaService, ObjectMapper objectMapper, RuleParserService ruleParserService, CouponRuleDraftRepository couponRuleDraftRepository, CouponRuleRepository ruleRepo, GeminiService geminiService, CouponTransformer couponTransformer, GeminiService geminiService1, GeminiService geminiService2){
         this.couponRuleDraftRepository = couponRuleDraftRepository;
         this.couponRuleRepository = ruleRepo;
         this.couponTransformer = couponTransformer;
+        this.geminiService = geminiService;
     }
 
     public CouponRule getCouponRuleById(String couponRuleId){
@@ -55,7 +57,6 @@ public class CouponRuleService {
     public CouponRule finalizeRule(FinalizeRuleRequest finalizeRuleRequest) throws JsonProcessingException {
         CouponRuleDraft couponRuleDraft = couponRuleDraftRepository.findById(finalizeRuleRequest.getDraftId())
                 .orElseThrow(()->new CouponNotFoundException("Coupon   Rule Draft not found"));
-
         // Final CouponRule Object creation
         CouponRule finalRule = couponTransformer.createFinalCouponRuleObject(couponRuleDraft,finalizeRuleRequest);
 

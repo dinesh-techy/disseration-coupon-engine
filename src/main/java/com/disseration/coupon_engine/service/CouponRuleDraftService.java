@@ -81,12 +81,31 @@ public class CouponRuleDraftService {
 
     }
 
+    public CouponNameCode generateCouponNameCode(String couponRuleInfo){
+        try {
+
+            GeminiResponse rawRuleResponse = geminiService.generateCouponName(couponRuleInfo);
+            // Transform Gemini Response into Rule Json
+
+            return couponTransformer.transformGeminiCouponNameGenerationResponse(rawRuleResponse);
+        }
+        catch (JsonProcessingException jsonProcessingException){
+            throw new RuntimeException("JSON Processing Exception: " + jsonProcessingException.getMessage());
+        }
+    }
+
+
     public RuleDraft generateCouponDraftRule(String newCouponDetails){
         try {
 
             GeminiResponse rawRuleResponse = geminiService.generateRule(newCouponDetails);
             // Transform Gemini Response into Rule Json
             Rule rule = couponTransformer.transformGeminiRuleGenerationResponse(rawRuleResponse);
+
+            // Generate coupon code and name using LLM
+            CouponNameCode couponNameCode =generateCouponNameCode(rule.toString());
+            rule.setCouponName(couponNameCode.getCouponName());
+            rule.setCouponCode(couponNameCode.getCouponCode());
 
             // RuleDraft Object creation
             RuleDraft ruleDraft = ruleDraftValidation(rule);
