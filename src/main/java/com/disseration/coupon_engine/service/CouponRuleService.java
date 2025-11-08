@@ -36,6 +36,10 @@ public class CouponRuleService {
         return couponRule.orElseThrow(() -> new CouponNotFoundException("Rule not found ruleId" + couponRuleId));
     }
 
+    public CouponRule getCouponRuleByCode(String couponCode){
+        return couponRuleRepository.findByCouponCode(couponCode);
+    }
+
     public List<CouponRule> getCouponRuleByType(String couponType){
         try{
             return couponRuleRepository.findByRuleType(couponType);

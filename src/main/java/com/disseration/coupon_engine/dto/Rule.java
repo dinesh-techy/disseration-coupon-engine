@@ -10,16 +10,6 @@ import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 
-@Data
-@NoArgsConstructor
-@AllArgsConstructor
-@Builder
-class Condition {
-    private String field;       // e.g., "category", "amount", "user_type"
-    private String operator;    // e.g., "EQUALS", "GREATER_THAN", "LESS_THAN"
-    private String value;
-}
-
 
 @Data
 public class Rule {

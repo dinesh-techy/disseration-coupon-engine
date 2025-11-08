@@ -5,6 +5,7 @@ import com.disseration.coupon_engine.dto.FinalizeRuleRequest;
 import com.disseration.coupon_engine.entity.CouponRule;
 import com.disseration.coupon_engine.service.CouponRuleService;
 import com.fasterxml.jackson.core.JsonProcessingException;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -13,6 +14,7 @@ import java.util.List;
 
 @RequestMapping("/rule")
 @RestController
+@Tag(name = "Finalize Coupon Rule", description = "APIs for Coupon Rule")
 public class CouponRuleController {
     @Autowired
     private CouponRuleService couponRuleService;
@@ -39,5 +41,11 @@ public class CouponRuleController {
     public ResponseEntity<CouponDeleteDTO> deleteCouponRuleById(@RequestParam String couponId){
         CouponDeleteDTO deletedCouponRuleById = couponRuleService.deleteCouponRuleById(couponId);
         return ResponseEntity.status(200).body(deletedCouponRuleById);
+    }
+
+    @GetMapping(params = {"couponCode"})
+    public ResponseEntity<CouponRule> getFinalizedCouponRuleByName(@RequestParam String couponCode){
+        CouponRule couponRule = couponRuleService.getCouponRuleByCode(couponCode);
+        return ResponseEntity.status(200).body(couponRule);
     }
 }

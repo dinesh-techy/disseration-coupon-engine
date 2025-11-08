@@ -13,5 +13,4 @@ public class CouponEngineApplication {
 		SpringApplication.run(CouponEngineApplication.class, args);
 		System.out.println("Default TimeZone: " + TimeZone.getDefault().getID());
 	}
-
 }
