@@ -35,6 +35,11 @@ public class GeminiService {
                     "operator": string or null,
                     "value": string or null
                   },
+                  "couponRule": {
+                    "name": string or null,
+                    "scope": "CART_LEVEL" | "CATEGORY_LEVEL" | null,
+                    "targetCategory": string or null
+                 }
                   "expiryDate": string (ISO format) or null,
                   "usageLimit": number or null,
                   "stackable": boolean or null
@@ -56,7 +61,22 @@ public class GeminiService {
                 4. "expiryDate", "usageLimit", "stackable":
                    - Include only if explicitly mentioned; otherwise null.
                 5. If a field cannot be inferred → set it to null.
-                6. Output ONLY the JSON. No text or explanation.
+                6.Rules for "couponRule":
+                    1. "name":
+                        - Derive from coupon context (e.g., "Electronics10Off", "Cart5PercentOff").
+                        - If not explicitly given, set to null.
+                    2. "scope":
+                        - "CART_LEVEL" → if the discount applies to the entire order, total, or cart.
+                        - "CATEGORY_LEVEL" → if it applies only to a specific category like electronics, tyres, etc.
+                        - null → if unclear.
+                    3. "targetCategory":
+                        - Extract directly if a category is mentioned (e.g., electronics, tyres).
+                        - null if coupon applies to entire cart or no category mentioned.
+                    4. Keep "couponRule" consistent with main coupon type. For example:
+                        - “10% off on electronics” → scope = CATEGORY_LEVEL, targetCategory = "electronics".
+                        - “5% off on cart total” → scope = CART_LEVEL, targetCategory = null.
+                    5. Output must include "couponRule" at the root JSON level, alongside other fields.
+                7. Output ONLY the JSON. No text or explanation.
                 Description: %s
         """ + description;
 
