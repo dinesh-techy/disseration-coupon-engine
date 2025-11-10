@@ -1,8 +1,6 @@
 package com.disseration.coupon_engine.service;
 
 import com.disseration.coupon_engine.dto.Cart;
-import com.disseration.coupon_engine.dto.Rule;
-import com.disseration.coupon_engine.entity.CouponRule;
 import com.disseration.coupon_engine.repository.CouponRuleRepository;
 import org.springframework.stereotype.Service;
 
