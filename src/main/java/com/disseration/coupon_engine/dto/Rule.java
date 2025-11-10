@@ -16,6 +16,7 @@ public class Rule {
     private String type;
     private String value;
     private List<Condition> conditions;
+    private CouponRule couponRule;
     private LocalDate expiryDate;
     private Integer usageLimit;
     private Boolean stackable;
