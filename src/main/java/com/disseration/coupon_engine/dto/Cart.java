@@ -11,6 +11,7 @@ import java.util.List;
 public class Cart {
     private List<CartItem> items;
     private String couponCode;
+    private String couponCode2;
     private String memberShipType;
 
     public double getTotal() {

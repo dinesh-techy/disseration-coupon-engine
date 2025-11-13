@@ -42,24 +42,52 @@ public class CouponRuleRuntimeValidator {
     }
 
     public boolean isCartValid(Cart cart) {
-        Rule ruleJson = couponRuleService.getCouponRuleByCode(cart.getCouponCode()).getRuleJson();
+        Rule ruleJsonCoupon2 = null;
+        Rule ruleJsonCoupon1 = null;
+        if(cart.getCouponCode()!=null){
+            ruleJsonCoupon1 = couponRuleService.getCouponRuleByCode(cart.getCouponCode()).getRuleJson();
+        }
+        if(cart.getCouponCode2()!=null){
+            ruleJsonCoupon2 = couponRuleService.getCouponRuleByCode(cart.getCouponCode2()).getRuleJson();
+        }
+
         // 1️⃣ Basic sanity check
         if (!isCartStructureValid(cart)) return false;
 
-        // 2️⃣ Evaluate each condition dynamically
-        for (Condition condition : ruleJson.getConditions()) {
-            Object actualValue = resolveActualValue(cart, condition.getField());
-            if (actualValue == null) {
-                System.out.printf("⚠️ Unsupported field in condition: %s%n", condition.getField());
-                continue;
+        // 2️⃣ Evaluate each condition dynamically - Coupon 1
+        if(ruleJsonCoupon1!=null){
+            for (Condition condition : ruleJsonCoupon1.getConditions()) {
+                Object actualValue = resolveActualValue(cart, condition.getField());
+                if (actualValue == null) {
+                    System.out.printf("⚠️ Unsupported field in condition: %s%n", condition.getField());
+                    continue;
+                }
+
+                boolean passed = evaluateCondition(actualValue, condition.getValue(), condition.getOperator());
+
+                if (!passed) {
+                    System.out.printf("❌ Condition failed: %s %s %s%n",
+                            condition.getField(), condition.getOperator(), condition.getValue());
+                    return false;
+                }
             }
+        }
+        if(ruleJsonCoupon2!=null){
+            // 2️⃣ Evaluate each condition dynamically - Coupon 2
+            for (Condition condition : ruleJsonCoupon2.getConditions()) {
+                Object actualValue = resolveActualValue(cart, condition.getField());
+                if (actualValue == null) {
+                    System.out.printf("⚠️ Unsupported field in condition: %s%n", condition.getField());
+                    continue;
+                }
 
-            boolean passed = evaluateCondition(actualValue, condition.getValue(), condition.getOperator());
+                boolean passed = evaluateCondition(actualValue, condition.getValue(), condition.getOperator());
 
-            if (!passed) {
-                System.out.printf("❌ Condition failed: %s %s %s%n",
-                        condition.getField(), condition.getOperator(), condition.getValue());
-                return false;
+                if (!passed) {
+                    System.out.printf("❌ Condition failed: %s %s %s%n",
+                            condition.getField(), condition.getOperator(), condition.getValue());
+                    return false;
+                }
             }
         }
         System.out.println("✅ All rule conditions satisfied for cart");
