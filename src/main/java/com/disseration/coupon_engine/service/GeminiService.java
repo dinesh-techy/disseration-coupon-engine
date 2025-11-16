@@ -38,7 +38,9 @@ public class GeminiService {
                   "couponRule": {
                     "name": string or null,
                     "scope": "CART_LEVEL" | "CATEGORY_LEVEL" | null,
-                    "targetCategory": string or null
+                    "targetCategory": string or null,
+                    "cartLevelStackability": boolean or null,
+                    "categoryLevelStackability": boolean or null
                  }
                   "expiryDate": string (ISO format) or null,
                   "usageLimit": number or null,
@@ -75,7 +77,10 @@ public class GeminiService {
                     4. Keep "couponRule" consistent with main coupon type. For example:
                         - “10% off on electronics” → scope = CATEGORY_LEVEL, targetCategory = "electronics".
                         - “5% off on cart total” → scope = CART_LEVEL, targetCategory = null.
-                    5. Output must include "couponRule" at the root JSON level, alongside other fields.
+                    5. **Defaulting Rule:**
+                        - If "cartLevelStackability" is NOT explicitly mentioned in the description → set to true.
+                        - If "categoryLevelStackability" is NOT explicitly mentioned → set to true.
+                    6. Output must include "couponRule" at the root JSON level, alongside other fields.
                 7. Output ONLY the JSON. No text or explanation.
                 Description: %s
         """ + description;

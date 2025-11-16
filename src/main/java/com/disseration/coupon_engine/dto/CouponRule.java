@@ -10,6 +10,8 @@ import lombok.NoArgsConstructor;
 public class CouponRule {
     private String name;
     private CouponScope scope;
-    private String targetCategory; // null for cart-level coupons
+    private String targetCategory;
+    private boolean cartLevelStackability;
+    private boolean categoryLevelStackability;
 }
 

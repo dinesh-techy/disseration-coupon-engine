@@ -4,6 +4,7 @@ import com.disseration.coupon_engine.dto.Cart;
 import com.disseration.coupon_engine.dto.CartItem;
 import com.disseration.coupon_engine.dto.Condition;
 import com.disseration.coupon_engine.dto.Rule;
+import com.disseration.coupon_engine.errorHandling.CouponInvalidException;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
@@ -27,14 +28,14 @@ public class CouponRuleRuntimeValidator {
             boolean isValid = !expiryDate.isBefore(LocalDate.now());
             if (!isValid) {
                 System.out.println("❌ Coupon Expired at "+expiryDate);
-                return false;
+                throw new CouponInvalidException("❌ Coupon Expired at "+expiryDate);
             }
         }
 
         // Usage Limit Validation
         if (ruleJson.getUsageLimit()<=0) {
             System.out.println("❌ Coupon usage limit reached");
-            return false;
+            throw new CouponInvalidException("❌ Coupon usage limit reached");
         }
 
         // ✅ If passed both checks
@@ -68,7 +69,9 @@ public class CouponRuleRuntimeValidator {
                 if (!passed) {
                     System.out.printf("❌ Condition failed: %s %s %s%n",
                             condition.getField(), condition.getOperator(), condition.getValue());
-                    return false;
+                    throw new CouponInvalidException(
+                            String.format("❌ Condition failed: %s %s %s",
+                                    condition.getField(), condition.getOperator(), condition.getValue()));
                 }
             }
         }
@@ -84,9 +87,14 @@ public class CouponRuleRuntimeValidator {
                 boolean passed = evaluateCondition(actualValue, condition.getValue(), condition.getOperator());
 
                 if (!passed) {
-                    System.out.printf("❌ Condition failed: %s %s %s%n",
-                            condition.getField(), condition.getOperator(), condition.getValue());
-                    return false;
+                    String errorMessage = String.format(
+                            "❌ Condition failed: %s %s %s",
+                            condition.getField(), condition.getOperator(), condition.getValue()
+                    );
+
+                    System.out.printf("%s%n", errorMessage);
+
+                    throw new CouponInvalidException(errorMessage);
                 }
             }
         }
@@ -97,19 +105,16 @@ public class CouponRuleRuntimeValidator {
     // Basic cart sanity check
     private boolean isCartStructureValid(Cart cart) {
         if (cart == null || cart.getItems() == null || cart.getItems().isEmpty()) {
-            System.out.println("❌ Invalid or empty cart");
-            return false;
+            throw new CouponInvalidException("❌ Invalid or empty cart");
         }
         for (CartItem item : cart.getItems()) {
             if (item.getPrice() <= 0 || item.getQuantity() <= 0) {
-                System.out.printf("❌ Invalid item: %s (price/quantity issue)%n", item.getProductId());
-                return false;
+                throw new CouponInvalidException("❌ Invalid item: %s (price/quantity issue)%n"+ item.getProductId());
             }
         }
         double total = cart.getTotal();
         if (total <= 0) {
-            System.out.println("❌ Cart total must be greater than 0");
-            return false;
+            throw new CouponInvalidException("❌ Cart total must be greater than 0");
         }
         return true;
     }
@@ -153,25 +158,37 @@ public class CouponRuleRuntimeValidator {
             double actual = ((Number) actualValue).doubleValue();
             double expected = parseDoubleSafe(expectedValue);
             return switch (operator.toLowerCase()) {
-                case "above" -> actual > expected;
-                case "below" -> actual < expected;
-                case "equals" -> actual == expected;
+                case "above", ">=" -> actual > expected;
+                case "below", "<=" -> actual < expected;
+                case "equals", "==" -> actual == expected;
                 default -> false;
             };
-        } else if (actualValue instanceof String) {
-            String actual = (String) actualValue;
-            return switch (operator.toLowerCase()) {
-                case "equals" -> actual.equalsIgnoreCase(expectedValue);
-                case "not_equals" -> !actual.equalsIgnoreCase(expectedValue);
-                case "in" -> List.of(expectedValue.split(",")).stream()
-                        .map(String::trim)
-                        .anyMatch(v -> v.equalsIgnoreCase(actual));
-                case "not_in" -> List.of(expectedValue.split(",")).stream()
-                        .noneMatch(v -> v.equalsIgnoreCase(actual));
-                default -> false;
-            };
+
         }
-        return false;
+        else if (actualValue instanceof String ) {
+            String actual = (String) actualValue;
+            evaluateCategoryCondition(actual,expectedValue,operator);
+        }
+        else if (actualValue instanceof List<?> list) {
+            for (Object item : list) {
+                String actual = (String) item;
+                evaluateCategoryCondition(actual,expectedValue,operator);
+            }
+        }
+        return true;
+    }
+
+    private boolean evaluateCategoryCondition(String actual,String expectedValue,String operator){
+        return switch (operator.toLowerCase()) {
+            case "equals" -> actual.equalsIgnoreCase(expectedValue);
+            case "not_equals" -> !actual.equalsIgnoreCase(expectedValue);
+            case "in" -> List.of(expectedValue.split(",")).stream()
+                    .map(String::trim)
+                    .anyMatch(v -> v.equalsIgnoreCase(actual));
+            case "not_in" -> List.of(expectedValue.split(",")).stream()
+                    .noneMatch(v -> v.equalsIgnoreCase(actual));
+            default -> false;
+        };
     }
 
     private double parseDoubleSafe(String value) {

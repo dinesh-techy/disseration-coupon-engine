@@ -1,6 +1,7 @@
 package com.disseration.coupon_engine.service;
 
 import com.disseration.coupon_engine.dto.Cart;
+import com.disseration.coupon_engine.errorHandling.CouponInvalidException;
 import com.disseration.coupon_engine.repository.CouponRuleRepository;
 import org.springframework.stereotype.Service;
 
@@ -15,7 +16,7 @@ public class CartService {
         this.conflictMatrixValidator = conflictMatrixValidator;
     }
 
-    public void cartValidation(Cart cart){
+    public boolean cartValidation(Cart cart){
         // Rule Validation - expiry and usageLimits
         Boolean coupon1RuleValidation=null;
         Boolean coupon2RuleValidation=null;
@@ -32,13 +33,13 @@ public class CartService {
         // Cart Validation
         Boolean isCartValid = couponRuleRuntimeValidator.isCartValid(cart);
         if(!isCartValid){
-            System.out.println("Cart is invalid for applying coupon");
+            throw new CouponInvalidException("Cart is invalid for applying coupon");
         }
+        Boolean isConflictMatrix=null;
 
-        // Conflict Matrix Validation
-        Boolean isConflictMatric = conflictMatrixValidator.validateCouponConflicts(cart);
-        if (!isConflictMatric){
-            System.out.println("Conflict Matrix....");
+        if(cart.getCouponCode()!=null || cart.getCouponCode2()!=null){
+            isConflictMatrix=conflictMatrixValidator.validateCouponConflicts(cart);
         }
+        return true;
     }
 }

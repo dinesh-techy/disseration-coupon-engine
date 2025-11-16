@@ -4,6 +4,7 @@ import com.disseration.coupon_engine.dto.Cart;
 import com.disseration.coupon_engine.dto.Rule;
 import com.disseration.coupon_engine.entity.CouponRule;
 import com.disseration.coupon_engine.enumm.CouponScope;
+import com.disseration.coupon_engine.errorHandling.CouponInvalidException;
 import com.disseration.coupon_engine.repository.CouponRuleRepository;
 import org.springframework.stereotype.Service;
 
@@ -27,11 +28,6 @@ public class ConflictMatrixValidator {
      * - CATEGORY_LEVEL coupons must target different categories.
      */
     public boolean validateCouponConflicts(Cart cart) {
-        // Coupon Coflict only for 2 coupons
-        if(cart.getCouponCode()==null || cart.getCouponCode2()==null){
-            System.out.println("Coupon Conflict Validation is only for 2 coupons");
-            return false;
-        }
         Rule couponRule1 = null;
         Rule couponRule2 = null;
 
@@ -59,12 +55,18 @@ public class ConflictMatrixValidator {
                         (couponRule2 != null && couponRule2.getStackable() != null && !couponRule2.getStackable() && couponRule1 != null)
         ) {
             System.out.println("❌ Conflict: Coupon Stackability is not allowed apply only 1 coupon");
-            return false;
+            throw new CouponInvalidException("❌ Conflict: Coupon Stackability is not allowed apply only 1 coupon");
         }
 
-
-
-
+        // Stackability check for CouponType Level
+       if((!couponRule1.getCouponRule().isCategoryLevelStackability() && couponRule2.getCouponRule().getScope().toString().equals("CATEGORY_LEVEL")) || (!couponRule2.getCouponRule().isCategoryLevelStackability()&&couponRule1.getCouponRule().getScope().toString().equals("CATEGORY_LEVEL"))) {
+           System.out.println("❌ Conflict: Coupon Category Stackability is not allowed!");
+           throw new CouponInvalidException("❌ Conflict: Coupon Category Stackability is not allowed!");
+       }
+        else if((!couponRule1.getCouponRule().isCartLevelStackability() && couponRule2.getCouponRule().getScope().toString().equals("CART_LEVEL")) || (!couponRule2.getCouponRule().isCartLevelStackability()&&couponRule1.getCouponRule().getScope().toString().equals("CART_LEVEL"))) {
+            System.out.println("❌ Conflict: Coupon Cart Stackability is not allowed!");
+            throw new CouponInvalidException("❌ Conflict: Coupon Cart Stackability is not allowed!");
+        }
         // Add the CouponRule in List
         List<com.disseration.coupon_engine.dto.CouponRule> appliedCoupons = new ArrayList<>();
         appliedCoupons.add(couponRule1.getCouponRule());
@@ -74,22 +76,12 @@ public class ConflictMatrixValidator {
 
         for (com.disseration.coupon_engine.dto.CouponRule coupon : appliedCoupons) {
             CouponScope scope = coupon.getScope();
-
-            // 1️⃣ CART_LEVEL check
-            if (scope == CouponScope.CART_LEVEL) {
-                if (hasCartLevel || appliedCoupons.size() > 1) {
-                    System.out.printf("❌ Conflict: Cart-level coupon '%s' cannot coexist with others.%n", coupon.getName());
-                    return false;
-                }
-                hasCartLevel = true;
-            }
-
-            // 2️⃣ CATEGORY_LEVEL same category check
+            // 1️⃣ CATEGORY_LEVEL same category check
             if (scope == CouponScope.CATEGORY_LEVEL) {
                 String category = coupon.getTargetCategory().toLowerCase();
                 if (categorySet.contains(category)) {
                     System.out.printf("❌ Conflict: Multiple coupons for same category '%s'.%n", category);
-                    return false;
+                    throw new CouponInvalidException("❌ Conflict: Multiple coupons for same category '%s'.%n"+ category);
                 }
                 categorySet.add(category);
             }
