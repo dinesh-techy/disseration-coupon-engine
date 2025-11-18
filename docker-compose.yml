@@ -2,8 +2,9 @@ services:
   db:
     image: postgres:16
     container_name: coupon-db
+    restart: always
     environment:
-      POSTGRES_DB: coupondb
+      POSTGRES_DB: coupon
       POSTGRES_USER: coupon_user
       POSTGRES_PASSWORD: coupon_pass
       TZ: Asia/Kolkata
@@ -17,11 +18,11 @@ services:
     container_name: coupon-app
     depends_on:
       - db
+    restart: always
     ports:
       - "8080:8080"
-    network_mode: host
     environment:
-      SPRING_DATASOURCE_URL: jdbc:postgresql://coupon-db:5432/coupon
+      SPRING_DATASOURCE_URL: jdbc:postgresql://db:5432/coupon
       SPRING_DATASOURCE_USERNAME: coupon_user
       SPRING_DATASOURCE_PASSWORD: coupon_pass
 
