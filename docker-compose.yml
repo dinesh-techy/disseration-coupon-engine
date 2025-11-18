@@ -21,7 +21,7 @@ services:
       - "8080:8080"
     network_mode: host
     environment:
-      SPRING_DATASOURCE_URL: jdbc:postgresql://db:5432/coupondb
+      SPRING_DATASOURCE_URL: jdbc:postgresql://coupon-db:5432/coupon
       SPRING_DATASOURCE_USERNAME: coupon_user
       SPRING_DATASOURCE_PASSWORD: coupon_pass
 
