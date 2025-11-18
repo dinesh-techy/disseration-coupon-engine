@@ -23,4 +23,9 @@ public class CartController {
         cartService.cartValidation(cart);
         return ResponseEntity.status(200).body("Cart validated successfully");
     }
+
+    @PostMapping("check")
+    public ResponseEntity<String> checkCart(@RequestBody Cart cart){
+        return ResponseEntity.status(200).body("Cart validated successfully");
+    }
 }
