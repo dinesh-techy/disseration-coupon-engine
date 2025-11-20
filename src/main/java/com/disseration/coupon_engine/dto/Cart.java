@@ -15,7 +15,7 @@ public class Cart {
     private String memberShipType;
 
     public double getTotal() {
-        double cartTotal = items.stream().mapToDouble(CartItem::getPrice).sum();
+        double cartTotal = items.stream().mapToDouble(c->c.getPrice()*c.getQuantity()).sum();
         System.out.println("Cart total is "+cartTotal);
         return cartTotal;
     }
