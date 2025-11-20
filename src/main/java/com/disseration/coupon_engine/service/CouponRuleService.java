@@ -12,6 +12,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -34,6 +35,13 @@ public class CouponRuleService {
     public CouponRule getCouponRuleById(String couponRuleId){
         Optional<CouponRule> couponRule = couponRuleRepository.findById(UUID.fromString(couponRuleId));
         return couponRule.orElseThrow(() -> new CouponNotFoundException("Rule not found ruleId" + couponRuleId));
+    }
+
+    public List<String> getAllCouponCodes(){
+        List<CouponRule> couponRules = couponRuleRepository.findAll();
+        List<String> couponCodes = new ArrayList<>();
+        couponRules.stream().map(couponRule -> couponCodes.add(couponRule.getRuleJson().getCouponCode())).toList();
+        return couponCodes;
     }
 
     public CouponRule getCouponRuleByCode(String couponCode){

@@ -48,4 +48,10 @@ public class CouponRuleController {
         CouponRule couponRule = couponRuleService.getCouponRuleByCode(couponCode);
         return ResponseEntity.status(200).body(couponRule);
     }
+
+    @GetMapping("allCodes")
+    public ResponseEntity<List<String>> getAllCouponCodes(){
+        List<String> couponCodes = couponRuleService.getAllCouponCodes();
+        return ResponseEntity.status(200).body(couponCodes);
+    }
 }

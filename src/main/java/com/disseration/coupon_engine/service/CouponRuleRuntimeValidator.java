@@ -56,7 +56,7 @@ public class CouponRuleRuntimeValidator {
         if (!isCartStructureValid(cart)) return false;
 
         // 2️⃣ Evaluate each condition dynamically - Coupon 1
-        if(ruleJsonCoupon1!=null){
+        if(ruleJsonCoupon1!=null) {
             for (Condition condition : ruleJsonCoupon1.getConditions()) {
                 Object actualValue = resolveActualValue(cart, condition.getField());
                 if (actualValue == null) {

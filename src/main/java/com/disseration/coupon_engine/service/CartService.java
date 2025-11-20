@@ -37,7 +37,7 @@ public class CartService {
         }
         Boolean isConflictMatrix=null;
 
-        if(cart.getCouponCode()!=null || cart.getCouponCode2()!=null){
+        if(cart.getCouponCode()!=null && cart.getCouponCode2()!=null){
             isConflictMatrix=conflictMatrixValidator.validateCouponConflicts(cart);
         }
         return true;
